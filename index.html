@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>P2P COLL-JOURNAL</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+    <h1>📓 ВРЕМЕННЫЙ ЖУРНАЛ ДЗ И ОЦЕНОК</h1>
+    <hr>
+
+    <div class="box">
+        <h3>Управление (Без мыши):</h3>
+        • Кликните на [•] и тапайте <b>W</b> — оценки (2, 3, 4, 5)<br>
+        • Тапайте <b>A</b> — посещаемость (Б, Н, Н/А)<br>
+        • Введите номер (например, 1 и 2) — быстрый телепорт к студенту<br>
+        • Нажмите <b>S</b> — сохранить локально (JSON в консоль)
+    </div>
+
+    <div id="buffer-notify"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 40px;">№</th>
+                <th>Студент</th>
+                <th style="width: 150px;">Оценка / Статус</th>
+            </tr>
+        </thead>
+        <tbody id="journal-rows">
+            <!-- Скрипт автоматически создаст строки -->
+        </tbody>
+    </table>
+
+    <script>
+        // Быстрая генерация 30 студентов
+        const tbody = document.getElementById('journal-rows');
+        for (let i = 1; i <= 30; i++) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${i}</td>
+                <td>Студент №${i}</td>
+                <td class="selectable" tabindex="0" data-id="${i}">•</td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        const grades = ['•', '2', '3', '4', '5'];
+        const statuses = ['•', 'Б', 'Н', 'Н/А'];
+        let numberBuffer = '';
+        let bufferTimeout;
+        const notify = document.getElementById('buffer-notify');
+
+        document.addEventListener('keydown', (event) => {
+            const key = event.key;
+            const activeCell = document.activeElement;
+
+            // 1. Цифровой телепорт (0-9)
+            if (/^\d$/.test(key)) {
+                event.preventDefault();
+                numberBuffer += key;
+                notify.innerText = `[ Переход к №${numberBuffer}... ]`;
+
+                clearTimeout(bufferTimeout);
+                bufferTimeout = setTimeout(() => {
+                    const target = document.querySelector(`[data-id="${numberBuffer}"]`);
+                    if (target) {
+                        target.focus();
+                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    numberBuffer = '';
+                    notify.innerText = '';
+                }, 400);
+                return;
+            }
+
+            // 2. Быстрое сохранение на клавишу S (вызов лога)
+            if (key.toLowerCase() === 's' || key.toLowerCase() === 'ы') {
+                event.preventDefault();
+                const data = [];
+                document.querySelectorAll('.selectable').forEach(cell => {
+                    data.push({ id: cell.getAttribute('data-id'), val: cell.innerText });
+                });
+                console.log('Данные для P2P отправки готовы:', JSON.stringify(data));
+                notify.innerText = '[ ДАННЫЕ СОХРАНЕНЫ В КОНСОЛЬ ]';
+                setTimeout(() => notify.innerText = '', 1500);
+                return;
+            }
+
+            // 3. Управление ячейками (W и A)
+            if (!activeCell || !activeCell.classList.contains('selectable')) return;
+            const currentText = activeCell.innerText.trim();
+            const lowerKey = key.toLowerCase();
+
+            if (lowerKey === 'w' || lowerKey === 'ц') {
+                event.preventDefault();
+                let idx = grades.indexOf(currentText);
+                activeCell.innerText = grades[(idx === -1 ? 0 : idx + 1) % grades.length];
+            }
+            if (lowerKey === 'a' || lowerKey === 'ф') {
+                event.preventDefault();
+                let idx = statuses.indexOf(currentText);
+                activeCell.innerText = statuses[(idx === -1 ? 0 : idx + 1) % statuses.length];
+            }
+        });
+    </script>
+</body>
+</html>
