@@ -1,0 +1,82 @@
+/* Полный брутализм: только белый, черный и моноширинный шрифт */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-family: monospace, Courier, monospace;
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Ссылки без синевы: просто черные с подчеркиванием */
+a {
+    color: #000000;
+    text-decoration: underline;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+/* Заголовки и разделители */
+h1, h2, h3 {
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #000000;
+    margin: 15px 0;
+}
+
+/* Таблицы: только жесткие черные линии */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px 0;
+}
+
+th, td {
+    border: 1px solid #000000 !important;
+    padding: 8px;
+    text-align: left;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+th {
+    font-weight: bold;
+}
+
+/* Интерактивная ячейка для оценок при фокусе (выделении) */
+td.selectable {
+    cursor: pointer;
+}
+
+td.selectable:focus {
+    outline: 2px solid #000000;
+    background-color: #ffffff !important; /* Никаких цветов, только фокус рамкой */
+}
+
+/* Служебные блоки (инструкции, буферы) */
+.box {
+    border: 1px dashed #000000;
+    padding: 10px;
+    margin-bottom: 20px;
+    max-width: 600px;
+}
+
+#buffer-notify {
+    font-weight: bold;
+    margin-top: 10px;
+    min-height: 20px;
+}
