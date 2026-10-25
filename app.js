@@ -1,29 +1,36 @@
-// Ждем загрузки страницы и парсера Markdown
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Подключаем стили main.css динамически, чтобы не засорять index.md
+    // 1. Динамически подключаем стили main.css
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = "main.css";
     document.head.appendChild(link);
 
-    // Создаем контейнер для индикатора телепорта
+    // 2. Создаем отдельный контейнер чисто под контент маркдауна, 
+    // чтобы не затирать <script> теги в body
+    const contentDiv = document.createElement("div");
+    contentDiv.id = "journal-content";
+    document.body.appendChild(contentDiv);
+
+    // Создаем плашку для индикатора телепорта
     const notify = document.createElement('div');
     notify.id = 'buffer-notify';
-    document.body.insertBefore(notify, document.body.firstChild);
+    document.body.insertBefore(notify, contentDiv);
 
     try {
-        // 2. Лениво скачиваем твой чистый index.md
+        // 3. Скачиваем index.md
         const response = await fetch("index.md");
+        if (!response.ok) throw new Error("Не удалось загрузить index.md");
         const markdownText = await response.text();
 
-        // Рендерим Markdown в HTML внутрь body
-        document.body.innerHTML += marked.parse(markdownText);
+        // Рендерим Markdown строго внутрь нашего контейнера
+        contentDiv.innerHTML = marked.parse(markdownText);
 
-        // 3. Оживляем таблицу (делаем ячейки интерактивными)
-        const rows = document.querySelectorAll('table tbody tr');
+        // 4. Оживляем таблицу
+        const rows = contentDiv.querySelectorAll('table tbody tr');
         rows.forEach(row => {
-            const indexCell = row.cells[0];
-            const targetCell = row.cells[2]; // Колонка с оценками
+            const indexCell = row.cells[0]; // Первая ячейка (№)
+            const targetCell = row.cells[2]; // Третья ячейка (Оценка)
+            
             if (targetCell && indexCell) {
                 targetCell.classList.add('selectable');
                 targetCell.setAttribute('tabindex', '0');
@@ -31,11 +38,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         });
 
-        // 4. Запускаем обработчик горячих клавиш
+        // 5. Запускаем горячие клавиши
         initControls(notify);
 
     } catch (err) {
         console.error("Ошибка загрузки журнала:", err);
+        notify.innerText = `[ ОШИБКА: ${err.message} ]`;
     }
 });
 
@@ -49,7 +57,7 @@ function initControls(notify) {
         const key = event.key;
         const activeCell = document.activeElement;
 
-        // Цифровой телепорт
+        // Цифровой телепорт (0-9)
         if (/^\d$/.test(key)) {
             event.preventDefault();
             numberBuffer += key;
@@ -76,7 +84,7 @@ function initControls(notify) {
                 data.push({ id: cell.getAttribute('data-id'), val: cell.innerText });
             });
             console.log('Данные готовы к отправке:', JSON.stringify(data));
-            notify.innerText = '[ ДАННЫЕ СОХРАНЕНЫ ]';
+            notify.innerText = '[ ДАННЫЕ СОХРАНЕНЫ В КОНСОЛЬ ]';
             setTimeout(() => notify.innerText = '', 1500);
             return;
         }
