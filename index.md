@@ -1,3 +1,6 @@
+<script src="https://jsdelivr.net"></script>
+<script src="app.js"></script>
+
 # 📓 ВРЕМЕННЫЙ ЖУРНАЛ ДЗ И ОЦЕНОК
 
 ### Управление (Без мыши):
