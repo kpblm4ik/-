@@ -1,12 +1,11 @@
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Динамически подключаем стили main.css
+    // 1. Подключаем стили
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = "main.css";
     document.head.appendChild(link);
 
-    // 2. Создаем отдельный контейнер чисто под контент маркдауна, 
-    // чтобы не затирать <script> теги в body
+    // 2. Создаем контейнер для контента
     const contentDiv = document.createElement("div");
     contentDiv.id = "journal-content";
     document.body.appendChild(contentDiv);
@@ -17,18 +16,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.body.insertBefore(notify, contentDiv);
 
     try {
-        // 3. Скачиваем index.md
+        // 3. Качаем твой index.md
         const response = await fetch("index.md");
-        if (!response.ok) throw new Error("Не удалось загрузить index.md");
+        if (!response.ok) throw new Error("Не удалось найти index.md");
         const markdownText = await response.text();
 
-        // Рендерим Markdown строго внутрь нашего контейнера
+        // Рендерим Markdown строго в наш контейнер
         contentDiv.innerHTML = marked.parse(markdownText);
 
-        // 4. Оживляем таблицу
+        // 4. Оживляем таблицу (ИСПРАВЛЕНО: добавлены индексы ячеек)
         const rows = contentDiv.querySelectorAll('table tbody tr');
         rows.forEach(row => {
-            const indexCell = row.cells[0]; // Первая ячейка (№)
+            const indexCell = row.cells[0];  // Первая ячейка (№)
             const targetCell = row.cells[2]; // Третья ячейка (Оценка)
             
             if (targetCell && indexCell) {
@@ -38,12 +37,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         });
 
-        // 5. Запускаем горячие клавиши
+        // 5. Включаем клавиши
         initControls(notify);
 
     } catch (err) {
-        console.error("Ошибка загрузки журнала:", err);
-        notify.innerText = `[ ОШИБКА: ${err.message} ]`;
+        console.error("Ошибка:", err);
+        notify.innerText = `[ ОШИБКА ЗАГРУЗКИ: ${err.message} ]`;
     }
 });
 
@@ -57,7 +56,7 @@ function initControls(notify) {
         const key = event.key;
         const activeCell = document.activeElement;
 
-        // Цифровой телепорт (0-9)
+        // Телепорт
         if (/^\d$/.test(key)) {
             event.preventDefault();
             numberBuffer += key;
@@ -76,14 +75,14 @@ function initControls(notify) {
             return;
         }
 
-        // Быстрое сохранение (S)
+        // Сохранение (S)
         if (key.toLowerCase() === 's' || key.toLowerCase() === 'ы') {
             event.preventDefault();
             const data = [];
             document.querySelectorAll('.selectable').forEach(cell => {
                 data.push({ id: cell.getAttribute('data-id'), val: cell.innerText });
             });
-            console.log('Данные готовы к отправке:', JSON.stringify(data));
+            console.log('Данные для P2P:', JSON.stringify(data));
             notify.innerText = '[ ДАННЫЕ СОХРАНЕНЫ В КОНСОЛЬ ]';
             setTimeout(() => notify.innerText = '', 1500);
             return;
