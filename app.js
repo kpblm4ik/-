@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Подключаем стили
+    // 1. Подключаем стили main.css
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = "main.css";
@@ -16,33 +16,41 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.body.insertBefore(notify, contentDiv);
 
     try {
-        // 3. Качаем твой index.md
-        const response = await fetch("journal.md");
-        if (!response.ok) throw new Error("Не удалось найти index.md");
+        // 3. Скачиваем journal.md с защитой от кэша (?v=...)
+        const response = await fetch("journal.md?v=" + Date.now());
+        if (!response.ok) throw new Error("Файл journal.md не найден на сервере");
         const markdownText = await response.text();
+
+        // Проверяем, загрузилась ли библиотека marked
+        if (typeof marked === 'undefined' || !marked.parse) {
+            throw new Error("Библиотека Marked не успела загрузиться. Попробуйте обновить страницу.");
+        }
 
         // Рендерим Markdown строго в наш контейнер
         contentDiv.innerHTML = marked.parse(markdownText);
 
-        // 4. Оживляем таблицу (ИСПРАВЛЕНО: добавлены индексы ячеек)
+        // 4. Оживляем таблицу (ИСПРАВЛЕНО: жесткие индексы)
         const rows = contentDiv.querySelectorAll('table tbody tr');
         rows.forEach(row => {
-            const indexCell = row.cells[0];  // Первая ячейка (№)
-            const targetCell = row.cells[2]; // Третья ячейка (Оценка)
-            
-            if (targetCell && indexCell) {
-                targetCell.classList.add('selectable');
-                targetCell.setAttribute('tabindex', '0');
-                targetCell.setAttribute('data-id', indexCell.innerText.trim());
+            // Проверяем, что в строке вообще есть ячейки
+            if (row.cells && row.cells.length >= 3) {
+                const indexCell = row.cells[0];  // Первая ячейка (№)
+                const targetCell = row.cells[2]; // Третья ячейка (Оценка)
+                
+                if (targetCell && indexCell) {
+                    targetCell.classList.add('selectable');
+                    targetCell.setAttribute('tabindex', '0');
+                    targetCell.setAttribute('data-id', indexCell.innerText.trim());
+                }
             }
         });
 
-        // 5. Включаем клавиши
+        // 5. Включаем горячие клавиши
         initControls(notify);
 
     } catch (err) {
-        console.error("Ошибка:", err);
-        notify.innerText = `[ ОШИБКА ЗАГРУЗКИ: ${err.message} ]`;
+        console.error("Критическая ошибка:", err);
+        notify.innerHTML = `<span style="color:red; font-weight:bold;">[ ОШИБКА: ${err.message} ]</span>`;
     }
 });
 
@@ -56,7 +64,7 @@ function initControls(notify) {
         const key = event.key;
         const activeCell = document.activeElement;
 
-        // Телепорт
+        // Цифровой телепорт (0-9)
         if (/^\d$/.test(key)) {
             event.preventDefault();
             numberBuffer += key;
@@ -75,14 +83,14 @@ function initControls(notify) {
             return;
         }
 
-        // Сохранение (S)
+        // Быстрое сохранение (S)
         if (key.toLowerCase() === 's' || key.toLowerCase() === 'ы') {
             event.preventDefault();
             const data = [];
             document.querySelectorAll('.selectable').forEach(cell => {
                 data.push({ id: cell.getAttribute('data-id'), val: cell.innerText });
             });
-            console.log('Данные для P2P:', JSON.stringify(data));
+            console.log('Данные для P2P отправки готовы:', JSON.stringify(data));
             notify.innerText = '[ ДАННЫЕ СОХРАНЕНЫ В КОНСОЛЬ ]';
             setTimeout(() => notify.innerText = '', 1500);
             return;
