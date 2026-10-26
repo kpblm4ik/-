@@ -60,5 +60,28 @@
                 document.getElementById('student-meta').innerHTML = `
                     <p><strong>ПРЕПОДАВАТЕЛЬ:</strong> ${parsed.t}</p>
                     <p><strong>ГРУППА:</strong> ${parsed.g}</p>
-                    <p><strong>ПРЕДМЕТ:</strong> ${parsed.s}</p>
+                    <p><strong>ПРЕДМЕТ:</strong> ${parsed.s}</p> 
                 `;
+                                // ЧАСТЬ 3: Вывод карточек студентов с оценками и ДЗ
+                const gradesBox = document.getElementById('student-grades-box');
+                gradesBox.innerHTML = ''; // Очищаем заглушки
+
+                parsed.d.forEach(student => {
+                    const card = document.createElement('div');
+                    card.className = 'student-card';
+                    card.innerHTML = `
+                        <p><strong>СТУДЕНТ:</strong> ${student.n}</p>
+                        <p><strong>ОЦЕНКИ:</strong> ${student.g || 'Нет оценок'}</p>
+                        <p><strong>ДОМАШНЕЕ ЗАДАНИЕ:</strong> ${student.hw || 'Не задано'}</p>
+                    `;
+                    gradesBox.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error("Ошибка расшифровки P2P данных:", err);
+                document.getElementById('student-meta').innerText = "Ошибка: не удалось прочитать данные ссылки.";
+            }
+        });
+    </script>
+</body>
+</html>
