@@ -27,15 +27,21 @@ window.addEventListener("load", () => {
         } 
         
         // 2. ЭКРАН СТУДЕНТА
-        else if (hash === "#student") {
-            roleSection.innerHTML = `
-                <h2>🧑‍🎓 РЕЖИМ: СТУДЕНТ</h2>
-                <div class="box">
-                    <p>Ожидание ввода P2P-ключа для синхронизации ведомости.</p>
-                </div>
-            `;
-            initControls(notify, false);
-        } 
+          else if (hash === "#student") {
+    // ЧАСТЬ 1: Читаем зашифрованные данные из адреса строки
+    const urlParams = new URLSearchParams(window.location.search);
+    const p2pData = urlParams.get('p2p');
+
+    if (!p2pData) {
+      roleSection.innerHTML = `
+        <h2>🧑‍🎓 РЕЖИМ: СТУДЕНТ</h2>
+        <div class="box">
+          <p>Ожидание ввода P2P-ключа или перехода по ссылке преподавателя для синхронизации.</p>
+        </div>
+      `;
+      initControls(notify, false);
+      return;
+    }
         
         // 3. ЭКРАН ЗАВДЕКАНАТА
         else if (hash === "#dean") {
