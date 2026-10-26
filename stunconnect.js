@@ -1,37 +1,32 @@
-// ЧАСТЬ 1: Настройка STUN-серверов для WebRTC
-// НАДЕЖНЫЕ STUN СЕРВЕРЫ ТЕСТИРОВАНИЯ
+// ЧАСТЬ 1: Расширенный список стабильных STUN-серверов
 const rtcConfig = {
     iceServers: [
         { urls: "stun:://google.com" },
         { urls: "stun:://google.com" },
-        { urls: "stun:://mozilla.com" }
+        { urls: "stun:://google.com" },
+        { urls: "stun:stunserver.org:3478" },
+        { urls: "stun:://nextcloud.com" }
     ]
 };
 
-// Функция для запроса внешнего IP через WebRTC
+// ЧАСТЬ 2: Запрос сетевого адреса устройства
 function getMyExternalIP() {
-    console.log("[P2P] Запрос внешнего IP-адреса через STUN...");
-    
-    // Создаем пустое P2P-соединение (без отправки аудио или видео)
+    console.log("[P2P] Поиск внешнего IP-адреса...");
     const pc = new RTCPeerConnection(rtcConfig);
     pc.createDataChannel("p2p-data");
 
-    // ЧАСТЬ 2: Перехват ICE-кандидатов от STUN-сервера
     pc.onicecandidate = (event) => {
-        if (!event.candidate) return; // Все кандидаты собраны
+        if (!event.candidate) return;
 
         const candidate = event.candidate.candidate;
-        console.log("[P2P] Найден сетевой кандидат:", candidate);
-
-        // Регулярное выражение для поиска IPv4 или IPv6 адресов в строке кандидата
+        // Регулярка для поиска IPv4 или IPv6 адресов в строке кандидата
         const ipRegex = /([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(\d{1,3}\.){3}\d{1,3}/;
         const match = candidate.match(ipRegex);
 
         if (match) {
             const myIP = match[0];
-            console.log("[P2P] Успех! Мой внешний IP:", myIP);
+            console.log("[P2P] Найден адрес:", myIP);
             
-            // Находим на странице элемент и выводим IP туда
             const ipDisplay = document.getElementById("my-p2p-ip");
             if (ipDisplay) {
                 ipDisplay.innerText = `ВАШ P2P IP: ${myIP}`;
@@ -39,19 +34,18 @@ function getMyExternalIP() {
         }
     };
 
-    // ЧАСТЬ 3: Инициализация создания сетевого предложения
     pc.createOffer()
         .then(offer => pc.setLocalDescription(offer))
-        .catch(err => console.error("[P2P] Ошибка WebRTC:", err));
+        .catch(err => console.error("[P2P] Ошибка инициализации:", err));
 }
 
-// Запускаем автоматический поиск IP при загрузке скрипта
-window.addEventListener("DOMContentLoaded", getMyExternalIP);
-
-// Защита от бесконечного зависания
+// Защита от бесконечного зависания плашки
 setTimeout(() => {
     const ipDisplay = document.getElementById("my-p2p-ip");
     if (ipDisplay && ipDisplay.innerText === "ОПРЕДЕЛЕНИЕ P2P IP...") {
-        ipDisplay.innerText = "СТАТУС P2P: ЛОКАЛЬНЫЙ РЕЖИМ (STUN СЕЙЧАС СШИБСЯ)";
+        ipDisplay.innerText = "СТАТУС P2P: ЛОКАЛЬНЫЙ РЕЖИМ (STUN ЗАБЛОКИРОВАН)";
     }
 }, 3000);
+
+// Запуск при загрузке
+window.addEventListener("DOMContentLoaded", getMyExternalIP);
