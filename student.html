@@ -38,3 +38,27 @@
     <div id="student-grades-box"></div>
 
     <p><a href="index.html">На главную</a></p>
+
+        <!-- Подключаем скрипт определения IP -->
+    <script src="stunconnect.js"></script>
+
+    <!-- Открываем брутальный скрипт расшифровки оценок -->
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {
+            // Читаем параметр p2p из адресной строки
+            const urlParams = new URLSearchParams(window.location.search);
+            const p2pData = urlParams.get('p2p');
+
+            if (!p2pData) return; // Если зашли без ссылки, ничего не делаем
+
+            try {
+                // Расшифровываем Base64 в нормальный русский текст
+                const decodedJSON = decodeURIComponent(escape(atob(p2pData)));
+                const parsed = JSON.parse(decodedJSON);
+
+                // Выводим данные о предмете и группе
+                document.getElementById('student-meta').innerHTML = `
+                    <p><strong>ПРЕПОДАВАТЕЛЬ:</strong> ${parsed.t}</p>
+                    <p><strong>ГРУППА:</strong> ${parsed.g}</p>
+                    <p><strong>ПРЕДМЕТ:</strong> ${parsed.s}</p>
+                `;
