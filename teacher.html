@@ -123,7 +123,7 @@ function packJournalToLink() {
     const payload = { t: fio, g: group, s: subject, d: studentsData };
     const base64Data = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
     
-    const baseUrl = window.location.origin + window.location.pathname.replace('teacher.html', 'index.html');
+    const baseUrl = window.location.origin + window.location.pathname.replace('teacher.html', 'student.html');
     document.getElementById('student-link').innerText = `${baseUrl}?p2p=${base64Data}#student`;
 }
 
@@ -170,5 +170,6 @@ document.getElementById('btn-copy-link').addEventListener('click', () => {
     alert('Ссылка скопирована!');
 });
 </script>
+<script src="stunconnect.js"></script> <!-- ВСТАВИТЬ СТРОГО СЮДА -->
 </body>
 </html>
