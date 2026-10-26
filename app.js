@@ -20,21 +20,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!response.ok) throw new Error("Файл journal.md не найден");
         const text = await response.text();
 
-        // 4. НАШ СОБСТВЕННЫЙ ЛЕНИВЫЙ ПАРСЕР ТАБЛИЦЫ
+        // 4. НАШ СОБСТВЕННЫЙ ИСПРАВЛЕННЫЙ ПАРСЕР ТАБЛИЦЫ
         let tableHTML = "<table><thead><tr><th>№</th><th>Студент</th><th>Оценка</th></tr></thead><tbody>";
         
-        // Разбираем текст по строкам
         const lines = text.split("\n");
         lines.forEach(line => {
+            const trimmed = line.trim();
             // Ищем только строки, которые начинаются и заканчиваются на вертикальную черту |
-            if (line.trim().startsWith("|") && !line.includes("---|")) {
-                const cells = line.split("|").map(c => c.trim()).filter(c => c !== "");
+            if (trimmed.startsWith("|") && !trimmed.includes("---|")) {
+                // Разбиваем строку по черточкам, очищаем от пробелов и убираем пустые элементы по краям
+                const cells = trimmed.split("|").map(c => c.trim()).filter(c => c !== "");
                 
-                // Проверяем, что это строка со студентом (первая ячейка должна быть числом)
-                if (cells.length >= 3 && /^\d+$/.test(cells.item(0))) {
-                    const num = cells.item(0);
-                    const name = cells.item(1);
-                    const val = cells.item(2);
+                // Проверяем, что в массиве есть данные и первый элемент — это число (номер студента)
+                if (cells.length >= 3 && /^\d+$/.test(cells[0])) {
+                    const num = cells[0];
+                    const name = cells[1];
+                    const val = cells[2];
 
                     tableHTML += `<tr>
                         <td>${num}</td>
