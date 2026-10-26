@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
         // 3. Качаем твой index.md
-        const response = await fetch("index.md");
+        const response = await fetch("journal.md");
         if (!response.ok) throw new Error("Не удалось найти index.md");
         const markdownText = await response.text();
 
