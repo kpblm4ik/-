@@ -1,0 +1,197 @@
+// ЧАСТЬ 1: Функция сборки данных таблицы в Base64-строку
+function packJournalToLink() {
+    const fio = document.getElementById('teacher-fio').value.toUpperCase() || 'ОСК';
+    const group = document.getElementById('group-name').value.toUpperCase() || 'ГРУППА';
+    const subject = document.getElementById('subject-name').value || 'Предмет';
+    
+    const rows = document.querySelectorAll('#grades-table tbody tr');
+    const studentsData = [];
+
+    rows.forEach(row => {
+        const name = row.querySelector('.student-name').value.trim();
+        if (name) {
+            studentsData.push({
+                n: name,
+                g1: row.querySelector('.g1').value.trim(),
+                g2: row.querySelector('.g2').value.trim(),
+                g3: row.querySelector('.g3').value.trim(),
+                hw: row.querySelector('.homework').value.trim()
+            });
+        }
+    });
+
+    const payload = { t: fio, g: group, s: subject, d: studentsData };
+    const base64Data = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    
+    const baseUrl = window.location.origin + window.location.pathname.replace('teacher.html', 'index.html');
+    const finalUrl = `${baseUrl}?p2p=${base64Data}#student`;
+    
+    document.getElementById('student-link').innerText = finalUrl;
+}
+
+// ЧАСТЬ 2: Обработчики кнопок и управление интерфейсом
+
+// Кнопка "Создать ведомость" — переключает экран и делает первую сборку ссылки
+document.getElementById('btn-create').addEventListener('click', () => {
+    const fio = document.getElementById('teacher-fio').value.toUpperCase();
+    const group = document.getElementById('group-name').value.toUpperCase();
+    const subject = document.getElementById('subject-name').value;
+
+    if (!fio || !group || !subject) {
+        alert('Заполните все три поля: ФИО, группу и предмет!');
+        return;
+    }
+
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('journal-screen').classList.remove('hidden');
+    document.getElementById('journal-title').innerText = `ЖУРНАЛ: ${fio} | ГРУППА: ${group} | ПРЕДМЕТ: ${subject}`;
+
+    packJournalToLink();
+});
+
+// Кнопка "+ Добавить студента" — создает новую брутальную строчку в таблице
+document.getElementById('btn-add-row').addEventListener('click', () => {
+    const tableBody = document.querySelector('#grades-table tbody');
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td><input type="text" class="student-name" placeholder="Студент" style="margin:0; border:1px solid #000;"></td>
+        <td><input type="text" class="g1" style="margin:0; border:1px solid #000; width:40px; text-align:center;"></td>
+        <td><input type="text" class="g2" style="margin:0; border:1px solid #000; width:40px; text-align:center;"></td>
+        <td><input type="text" class="g3" style="margin:0; border:1px solid #000; width:40px; text-align:center;"></td>
+        <td><input type="text" class="homework" placeholder="..." style="margin:0; border:1px solid #000; width:100%;"></td>
+    `;
+    tableBody.appendChild(newRow);
+});
+
+// Кнопка "Сформировать ссылку" — обновляет Base64-код при изменении оценок
+document.getElementById('btn-generate-p2p').addEventListener('click', () => {
+    packJournalToLink();
+    alert('Данные обновлены! Новая ссылка сгенерирована ниже.');
+});
+
+// Кнопка "Скопировать ссылку" — сохраняет результат в буфер обмена
+document.getElementById('btn-copy-link').addEventListener('click', () => {
+    const linkText = document.getElementById('student-link').innerText;
+    navigator.clipboard.writeText(linkText);
+    alert('Ссылка скопирована! Отправьте её студентам.');
+});
+
+<!-- ЧАСТЬ 3: HTML-структура интерфейса преподавателя -->
+
+<!-- ЭКРАН 1: ВХОД И РЕГИСТРАЦИЯ -->
+<div id="auth-screen" class="box">
+    <h2>ЗАПОЛНИТЕ ДАННЫЕ СЕССИИ</h2>
+    
+    <label for="teacher-fio">СОКРАЩЕННОЕ ФИО (НАПРИМЕР: ОСК):</label>
+    <input type="text" id="teacher-fio" placeholder="ОСК" maxlength="5">
+
+    <label for="group-name">ГРУППА (НАПРИМЕР: ИСП-31):</label>
+    <input type="text" id="group-name" placeholder="ИСП-31">
+
+    <label for="subject-name">ПРЕДМЕТ:</label>
+    <input type="text" id="subject-name" placeholder="Разработка веб-приложений">
+
+    <button id="btn-create">СОЗДАТЬ ВЕДОМОСТЬ</button>
+</div>
+
+<!-- ЭКРАН 2: УПРАВЛЕНИЕ ТАБЛИЦЕЙ (СКРЫТ ПО УМОЛЧАНИЮ) -->
+<div id="journal-screen" class="hidden">
+    <h2 id="journal-title">ЖУРНАЛ: ...</h2>
+    
+    <div class="share-box">
+        <p><strong>ССЫЛКА ДЛЯ СТУДЕНТОВ:</strong></p>
+        <div id="student-link" class="share-url">Сначала нажмите кнопку формирования...</div>
+        <button id="btn-copy-link">СКОПИРОВАТЬ ССЫЛКУ</button>
+    </div>
+
+    <hr>
+
+    <h3>ВЕДОМОСТЬ УСПЕВАЕМОСТИ</h3>
+    <table id="grades-table">
+        <thead>
+            <tr>
+                <th>СТУДЕНТ (ФИО)</th>
+                <th>ОЦЕНКА 1</th>
+                <th>ОЦЕНКА 2</th>
+                <th>ОЦЕНКА 3</th>
+                <th>ДОМАШНЕЕ ЗАДАНИЕ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Стартовая пустая строка -->
+            <tr>
+                <td><input type="text" class="student-name" placeholder="Иванов И.И." style="margin:0; border:1px solid #000;"></td>
+                <td><input type="text" class="g1" placeholder="5" style="margin:0; border:1px solid #000; width:40px; text-align:center;"></td>
+                <td><input type="text" class="g2" placeholder="4" style="margin:0; border:1px solid #000; width:40px; text-align:center;"></td>
+                <td><input type="text" class="g3" placeholder="5" style="margin:0; border:1px solid #000; width:40px; text-align:center;"></td>
+                <td><input type="text" class="homework" placeholder="Доделать лабу №3" style="margin:0; border:1px solid #000; width:100%;"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button id="btn-add-row">+ ДОБАВИТЬ СТУДЕНТА В ТАБЛИЦУ</button>
+    <button id="btn-generate-p2p" style="background: #000000; color: #ffffff;">⚡ СФОРМИРОВАТЬ ССЫЛКУ С ДАННЫМИ</button>
+</div>
+
+<p><a href="index.html">На главную</a></p>
+
+<!-- ЧАСТЬ 4: Стили и заголовок страницы -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель Преподавателя — АШП</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        /* Брутальные стили для форм ввода и интерактивных элементов */
+        input, select, button {
+            font-family: monospace, Courier, monospace;
+            font-size: 14px;
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+            padding: 8px;
+            margin-bottom: 15px;
+            display: block;
+            width: 100%;
+            max-width: 400px;
+        }
+        button {
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            width: auto;
+        }
+        button:hover {
+            background: #f0f0f0;
+        }
+        button:active {
+            background: #000000;
+            color: #ffffff;
+        }
+        .hidden {
+            display: none;
+        }
+        .share-box {
+            background: #ffffff;
+            border: 2px dashed #000000;
+            padding: 15px;
+            margin-top: 20px;
+            max-width: 600px;
+        }
+        .share-url {
+            word-break: break-all;
+            font-weight: bold;
+            background: #f0f0f0;
+            padding: 10px;
+            border: 1px solid #000000;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>👨‍🏫 ПАНЕЛЬ ПРЕПОДАВАТЕЛЯ (АШП)</h1>
+    <hr>
+    
