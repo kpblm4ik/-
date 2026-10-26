@@ -1,54 +1,59 @@
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Подключаем стили main.css
+    // 1. Подключаем стили
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = "main.css";
     document.head.appendChild(link);
 
-    // 2. Создаем контейнер для контента
+    // 2. Создаем элементы интерфейса
+    const notify = document.createElement('div');
+    notify.id = 'buffer-notify';
+    document.body.appendChild(notify);
+
     const contentDiv = document.createElement("div");
     contentDiv.id = "journal-content";
     document.body.appendChild(contentDiv);
 
-    // Создаем плашку для индикатора телепорта
-    const notify = document.createElement('div');
-    notify.id = 'buffer-notify';
-    document.body.insertBefore(notify, contentDiv);
-
     try {
-        // 3. Скачиваем journal.md с защитой от кэша
-        const response = await fetch("journal.md?v=" + Date.now());
+        // 3. Качаем чистый текстовый файл journal.md
+        const response = await fetch("journal.md");
         if (!response.ok) throw new Error("Файл journal.md не найден");
-        const markdownText = await response.text();
+        const text = await response.text();
 
-        if (typeof marked === 'undefined' || !marked.parse) {
-            throw new Error("Библиотека Marked не загрузилась");
-        }
-
-        // Рендерим Markdown в HTML
-        contentDiv.innerHTML = marked.parse(markdownText);
-
-        // 4. Оживляем таблицу (ИСПРАВЛЕНО ЧЕРЕЗ .item() БЕЗ КВАДРАТНЫХ СКОБОК)
-        const rows = contentDiv.querySelectorAll('table tbody tr');
-        rows.forEach(row => {
-            if (row.cells && row.cells.length >= 3) {
-                // item(0) — это первая ячейка (№), item(2) — третья ячейка (оценка)
-                const indexCell = row.cells.item(0);  
-                const targetCell = row.cells.item(2); 
+        // 4. НАШ СОБСТВЕННЫЙ ЛЕНИВЫЙ ПАРСЕР ТАБЛИЦЫ
+        let tableHTML = "<table><thead><tr><th>№</th><th>Студент</th><th>Оценка</th></tr></thead><tbody>";
+        
+        // Разбираем текст по строкам
+        const lines = text.split("\n");
+        lines.forEach(line => {
+            // Ищем только строки, которые начинаются и заканчиваются на вертикальную черту |
+            if (line.trim().startsWith("|") && !line.includes("---|")) {
+                const cells = line.split("|").map(c => c.trim()).filter(c => c !== "");
                 
-                if (targetCell && indexCell) {
-                    targetCell.classList.add('selectable');
-                    targetCell.setAttribute('tabindex', '0');
-                    targetCell.setAttribute('data-id', indexCell.innerText.trim());
+                // Проверяем, что это строка со студентом (первая ячейка должна быть числом)
+                if (cells.length >= 3 && /^\d+$/.test(cells.item(0))) {
+                    const num = cells.item(0);
+                    const name = cells.item(1);
+                    const val = cells.item(2);
+
+                    tableHTML += `<tr>
+                        <td>${num}</td>
+                        <td>${name}</td>
+                        <td class="selectable" tabindex="0" data-id="${num}">${val}</td>
+                    </tr>`;
                 }
             }
         });
+        tableHTML += "</tbody></table>";
+
+        // Выводим заголовок вручную и вставляем таблицу
+        contentDiv.innerHTML = "<h1>📓 ВРЕМЕННЫЙ ЖУРНАЛ ДЗ И ОЦЕНОК</h1><hr>" + tableHTML;
 
         // 5. Включаем горячие клавиши
         initControls(notify);
 
     } catch (err) {
-        console.error("Критическая ошибка:", err);
+        console.error(err);
         notify.innerHTML = `<span style="color:red; font-weight:bold;">[ ОШИБКА: ${err.message} ]</span>`;
     }
 });
@@ -63,7 +68,7 @@ function initControls(notify) {
         const key = event.key;
         const activeCell = document.activeElement;
 
-        // Цифровой телепорт (0-9)
+        // Телепорт
         if (/^\d$/.test(key)) {
             event.preventDefault();
             numberBuffer += key;
@@ -82,14 +87,14 @@ function initControls(notify) {
             return;
         }
 
-        // Быстрое сохранение (S)
+        // Сохранение (S)
         if (key.toLowerCase() === 's' || key.toLowerCase() === 'ы') {
             event.preventDefault();
             const data = [];
             document.querySelectorAll('.selectable').forEach(cell => {
                 data.push({ id: cell.getAttribute('data-id'), val: cell.innerText });
             });
-            console.log('Данные для P2P:', JSON.stringify(data));
+            console.log('Данные для отправки:', JSON.stringify(data));
             notify.innerText = '[ ДАННЫЕ СОХРАНЕНЫ В КОНСОЛЬ ]';
             setTimeout(() => notify.innerText = '', 1500);
             return;
