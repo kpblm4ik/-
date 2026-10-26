@@ -12,12 +12,15 @@ window.addEventListener("load", () => {
         if (rows.length === 0) {
             throw new Error("Таблица не найдена на странице. Проверьте разметку Маркдауна.");
         }
-
+        
         rows.forEach(row => {
-            // row.cells — это официальная коллекция HTML, метод .item() тут РАБОТАЕТ на 100%
-            if (row.cells && row.cells.length >= 3) {
-                const indexCell = row.cells.item(0); // Первая колонка (№)
-                const targetCell = row.cells.item(2); // Третья колонка (Оценка)
+            // Находим внутри строки все ячейки td
+            const allTds = row.querySelectorAll('td');
+            
+            // Если в строке есть хотя бы 3 ячейки (это обычная строка со студентом, а не заголовок)
+            if (allTds && allTds.length >= 3) {
+                const indexCell = allTds[0];  // Первая ячейка (номер)
+                const targetCell = allTds[2]; // Третья ячейка (оценка)
                 
                 if (targetCell && indexCell) {
                     targetCell.classList.add('selectable');
