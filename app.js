@@ -16,26 +16,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.body.insertBefore(notify, contentDiv);
 
     try {
-        // 3. Скачиваем journal.md с защитой от кэша (?v=...)
+        // 3. Скачиваем journal.md с защитой от кэша
         const response = await fetch("journal.md?v=" + Date.now());
-        if (!response.ok) throw new Error("Файл journal.md не найден на сервере");
+        if (!response.ok) throw new Error("Файл journal.md не найден");
         const markdownText = await response.text();
 
-        // Проверяем, загрузилась ли библиотека marked
         if (typeof marked === 'undefined' || !marked.parse) {
-            throw new Error("Библиотека Marked не успела загрузиться. Попробуйте обновить страницу.");
+            throw new Error("Библиотека Marked не загрузилась");
         }
 
-        // Рендерим Markdown строго в наш контейнер
+        // Рендерим Markdown в HTML
         contentDiv.innerHTML = marked.parse(markdownText);
 
-        // 4. Оживляем таблицу (ИСПРАВЛЕНО: жесткие индексы)
+        // 4. Оживляем таблицу (ИСПРАВЛЕНО ЧЕРЕЗ .item() БЕЗ КВАДРАТНЫХ СКОБОК)
         const rows = contentDiv.querySelectorAll('table tbody tr');
         rows.forEach(row => {
-            // Проверяем, что в строке вообще есть ячейки
             if (row.cells && row.cells.length >= 3) {
-                const indexCell = row.cells[0];  // Первая ячейка (№)
-                const targetCell = row.cells[2]; // Третья ячейка (Оценка)
+                // item(0) — это первая ячейка (№), item(2) — третья ячейка (оценка)
+                const indexCell = row.cells.item(0);  
+                const targetCell = row.cells.item(2); 
                 
                 if (targetCell && indexCell) {
                     targetCell.classList.add('selectable');
@@ -90,7 +89,7 @@ function initControls(notify) {
             document.querySelectorAll('.selectable').forEach(cell => {
                 data.push({ id: cell.getAttribute('data-id'), val: cell.innerText });
             });
-            console.log('Данные для P2P отправки готовы:', JSON.stringify(data));
+            console.log('Данные для P2P:', JSON.stringify(data));
             notify.innerText = '[ ДАННЫЕ СОХРАНЕНЫ В КОНСОЛЬ ]';
             setTimeout(() => notify.innerText = '', 1500);
             return;
