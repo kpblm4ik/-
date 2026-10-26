@@ -1,10 +1,10 @@
 // ЧАСТЬ 1: Настройка STUN-серверов для WebRTC
+// НАДЕЖНЫЕ STUN СЕРВЕРЫ ТЕСТИРОВАНИЯ
 const rtcConfig = {
     iceServers: [
-        { urls: "stun:stun.chathelp.ru:3478" },
-        { urls: "stun:stun.comtube.ru:3478" },
-        { urls: "stun:stun.3cx.com:3478" },
-        { urls: "stun:23.21.150.121:3478" }
+        { urls: "stun:://google.com" },
+        { urls: "stun:://google.com" },
+        { urls: "stun:://mozilla.com" }
     ]
 };
 
@@ -47,3 +47,11 @@ function getMyExternalIP() {
 
 // Запускаем автоматический поиск IP при загрузке скрипта
 window.addEventListener("DOMContentLoaded", getMyExternalIP);
+
+// Защита от бесконечного зависания
+setTimeout(() => {
+    const ipDisplay = document.getElementById("my-p2p-ip");
+    if (ipDisplay && ipDisplay.innerText === "ОПРЕДЕЛЕНИЕ P2P IP...") {
+        ipDisplay.innerText = "СТАТУС P2P: ЛОКАЛЬНЫЙ РЕЖИМ (STUN СЕЙЧАС СШИБСЯ)";
+    }
+}, 3000);
