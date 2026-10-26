@@ -14,10 +14,11 @@
     <p>Вы зашли в децентрализованную P2P-систему учета успеваемости. Выберите вашу роль для начала работы:</p>
 
     <div class="buttons-container">
-        <a href="#teacher">Я - ПРЕПОДАВАТЕЛЬ</a>
-        <a href="#student">Я - СТУДЕНТ</a>
-        <a href="#dean">Я - ЗАВДЕКАНАТ</a>
-    </div>
+    <!-- Меняем href с "#teacher" на прямую ссылку "teacher.html" -->
+    <a href="teacher.html">Я - ПРЕПОДАВАТЕЛЬ</a>
+    <a href="#student">Я - СТУДЕНТ</a>
+    <a href="#dean">Я - ЗАВДЕКАНАТ</a>
+</div>
 
     <!-- Сюда JS будет подставлять экраны -->
     <div id="role-section">
