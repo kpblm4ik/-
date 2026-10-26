@@ -80,9 +80,10 @@ function activateTableCells() {
     const rows = document.querySelectorAll('table tr');
     rows.forEach(row => {
         const allTds = row.querySelectorAll('td');
+        // Используем .item() с круглыми скобками, чтобы код гарантированно не сломался
         if (allTds && allTds.length >= 3) {
-            const indexCell = allTds;
-            const targetCell = allTds;
+            const indexCell = allTds.item(0);  // Первая ячейка (№)
+            const targetCell = allTds.item(2); // Третья ячейка (Оценка)
             
             if (targetCell && indexCell) {
                 targetCell.classList.add('selectable');
